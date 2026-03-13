@@ -57,6 +57,8 @@ https://coding94.github.io/GameHub/
 
 * Supabase
 
+* Cloudflare Workers
+
 📂 Project Structure
 ```
 GameHub/
