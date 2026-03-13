@@ -58,7 +58,7 @@ https://coding94.github.io/GameHub/
 * Supabase
 
 📂 Project Structure
-
+```
 GameHub/
 │
 ├── index.html
@@ -71,3 +71,4 @@ GameHub/
 └── games/
     ├── memory-game/
     └── spin-the-wheel/
+```
