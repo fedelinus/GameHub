@@ -7,9 +7,13 @@ It acts as a central platform where users can sign in, play mini-games, and comp
 
 The platform integrates user authentication and stores scores using modern backend services.
 
+---
+
 🌐 **Live Demo**
 
 [GameHub](https://linus9426.github.io/GameHub/)
+
+---
 
 🚀 **Features**
 
@@ -20,7 +24,8 @@ The platform integrates user authentication and stores scores using modern backe
 * Multiple mini-games accessible from a single hub
 
 * Interactive UI with dynamic JavaScript game logic
-  
+
+---
 
 🎮 **Included Games**
 
@@ -44,6 +49,7 @@ The platform integrates user authentication and stores scores using modern backe
   
   * Score tracking and leaderboard
   
+---
   
 🛠 **Technologies Used**
 
@@ -58,6 +64,8 @@ The platform integrates user authentication and stores scores using modern backe
 * Supabase
 
 * Cloudflare Workers
+
+---
 
 📂 **Project Structure**
 ```
@@ -74,6 +82,7 @@ GameHub/
     ├── memory-game/
     └── spin-the-wheel/
 ```
+---
 
 **License**
 
