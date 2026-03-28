@@ -1,9 +1,9 @@
+// auth.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged
+  signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   getFirestore,
@@ -17,7 +17,7 @@ import {
 
 console.log("auth.js loaded");
 
-// ================= FIREBASE CONFIG =================
+// ===== Firebase Config =====
 const firebaseConfig = {
   apiKey: "AIzaSyC1c89hLKibBXtXVwsj-Rdm_1XoLPKjn_U",
   authDomain: "auth-a5431.firebaseapp.com",
@@ -27,11 +27,12 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+console.log("auth.js: Firebase initialized");
+
 const auth = getAuth(app);
 const db = getFirestore(app);
-console.log("Firebase initialized");
 
-// ================= ELEMENTS =================
+// ===== DOM Elements =====
 const loginBtn = document.getElementById("login-btn");
 const showSignupBtn = document.getElementById("show-signup-btn");
 const signupBtn = document.getElementById("signup-btn");
@@ -39,9 +40,11 @@ const errorBox = document.getElementById("signup-error");
 const title = document.querySelector(".login-section h2");
 const loginForm = document.getElementById("login-form");
 
-// ================= LOGIN FORM =================
+// ===== LOGIN FORM =====
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  // Prevent login if Sign Up mode is active
   if (signupBtn.style.display === "block") return;
 
   const email = document.getElementById("email").value.trim();
@@ -64,14 +67,17 @@ loginForm.addEventListener("submit", async (event) => {
   }
 });
 
-// ================= SHOW SIGNUP =================
+// ===== SHOW SIGNUP MODE =====
 showSignupBtn.addEventListener("click", () => {
   console.log("Switching to Sign Up mode");
+
   document.getElementById("confirm-password").style.display = "block";
   document.getElementById("username").style.display = "block";
   signupBtn.style.display = "block";
+
   loginBtn.style.display = "none";
   showSignupBtn.style.display = "none";
+
   title.innerText = "Create Account";
 
   document.getElementById("email").value = "";
@@ -81,7 +87,7 @@ showSignupBtn.addEventListener("click", () => {
   errorBox.style.display = "none";
 });
 
-// ================= CHECK USERNAME =================
+// ===== CHECK USERNAME =====
 async function isUsernameTaken(username) {
   if (!username) return false;
   const usersRef = collection(db, "users");
@@ -90,7 +96,7 @@ async function isUsernameTaken(username) {
   return !querySnapshot.empty;
 }
 
-// ================= SIGNUP =================
+// ===== SIGNUP =====
 signupBtn.addEventListener("click", async () => {
   console.log("Sign Up clicked");
 
@@ -102,34 +108,28 @@ signupBtn.addEventListener("click", async () => {
   const confirmPassword = document.getElementById("confirm-password").value;
   const username = document.getElementById("username").value.trim();
 
-  console.log("Signup input:", { email, username, passwordLength: password.length });
-
-  // Validate input
   if (!email || !password || !confirmPassword || !username) {
     errorBox.innerText = "Please fill all fields.";
     errorBox.style.display = "block";
-    console.log("Validation failed: empty fields");
     return;
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
     errorBox.innerText = "Please enter a valid email address.";
     errorBox.style.display = "block";
-    console.log("Validation failed: invalid email");
     return;
   }
 
   if (username.length > 16) {
     errorBox.innerText = "Username must be 16 characters or less.";
     errorBox.style.display = "block";
-    console.log("Validation failed: username too long");
     return;
   }
 
   if (password !== confirmPassword) {
     errorBox.innerText = "Passwords do not match.";
     errorBox.style.display = "block";
-    console.log("Validation failed: passwords do not match");
     return;
   }
 
@@ -137,42 +137,32 @@ signupBtn.addEventListener("click", async () => {
     if (await isUsernameTaken(username)) {
       errorBox.innerText = "Username already taken.";
       errorBox.style.display = "block";
-      console.log("Validation failed: username taken");
       return;
     }
 
     console.log("Creating user in Firebase Auth...");
+
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    console.log("User created:", userCredential.user.uid);
+    const user = userCredential.user;
+    console.log("User created in Auth:", user.uid);
 
-    // Wait for user to be fully signed in
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("onAuthStateChanged fired. User:", user ? user.uid : null);
-
-      if (user) {
-        unsubscribe(); // stop listening
-
-        console.log("Writing user data to Firestore...");
-        try {
-          await setDoc(doc(db, "users", user.uid), {
-            email: email,
-            username: username,
-            createdAt: Date.now()
-          });
-          console.log("Firestore write succeeded");
-          alert(`Account created successfully! Welcome, ${username}.`);
-          // window.location.href = "index.html"; // commented out for debugging
-        } catch (firestoreError) {
-          console.error("Firestore write error:", firestoreError.code, firestoreError.message);
-        }
-      }
+    await setDoc(doc(db, "users", user.uid), {
+      email: email,
+      username: username,
+      createdAt: Date.now()
     });
+    console.log("User stored in Firestore");
+
+    // Redirect to homepage automatically
+    console.log(`Signup successful! Redirecting to homepage...`);
+    window.location.href = "index.html";
 
   } catch (error) {
     console.error("Signup error:", error.code, error.message);
     if (error.code === "auth/email-already-in-use") errorBox.innerText = "Email already registered.";
     else if (error.code === "auth/weak-password") errorBox.innerText = "Password must be at least 6 characters.";
     else errorBox.innerText = error.message;
+
     errorBox.style.display = "block";
   }
 });
