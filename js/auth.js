@@ -14,7 +14,7 @@ import {
   where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 
 console.log("auth.js loaded");
 
@@ -28,9 +28,9 @@ const firebaseConfig = {
 // ✅ Step 1: Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// ✅ Step 2: Initialize App Check **after the app exists**
+// ✅ Step 2: Initialize App Check (non-Enterprise)
 const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaEnterpriseProvider('6LcN0pssAAAAAN3gn52IVS3dMmqZBNfo3Sxx67YA'), // your new V3 site key
+  provider: new ReCaptchaV3Provider('6LcN0pssAAAAAN3gn52IVS3dMmqZBNfo3Sxx67YA'), // your free reCAPTCHA v3 site key
   isTokenAutoRefreshEnabled: true
 });
 
@@ -85,7 +85,6 @@ showSignupBtn.addEventListener("click", () => {
   showSignupBtn.style.display = "none";
   title.innerText = "Create Account";
 
-  // Clear fields
   document.getElementById("email").value = "";
   document.getElementById("password").value = "";
   document.getElementById("confirm-password").value = "";
@@ -147,15 +146,13 @@ signupBtn.addEventListener("click", async () => {
       return;
     }
 
-    // Create Auth user
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     console.log("User created in Auth:", user.uid);
 
-    // Save to Firestore
     await setDoc(doc(db, "users", user.uid), {
-      email: email,
-      username: username,
+      email,
+      username,
       createdAt: Date.now()
     });
 
