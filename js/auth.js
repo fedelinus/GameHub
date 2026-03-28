@@ -134,11 +134,14 @@ signupBtn.addEventListener("click", async () => {
       return;
     }
 
-    // Create user
+    // Create user in Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Write to Firestore AFTER user is authenticated
+    // ⚡ Immediately sign in so Firestore sees request.auth
+    await signInWithEmailAndPassword(auth, email, password);
+
+    // Write user data to Firestore
     await setDoc(doc(db, "users", user.uid), {
       email: email,
       username: username,
@@ -157,3 +160,4 @@ signupBtn.addEventListener("click", async () => {
     errorBox.style.display = "block";
   }
 });
+
