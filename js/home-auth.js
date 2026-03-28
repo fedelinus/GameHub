@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 
 console.log("home-auth.js loaded");
 
@@ -15,13 +14,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// ✅ App Check (ReCaptcha V3, non-Enterprise)
-const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6LcN0pssAAAAAN3gn52IVS3dMmqZBNfo3Sxx67YA'), // replace with your site key
-  isTokenAutoRefreshEnabled: true
-});
-console.log("home-auth.js: App Check initialized");
 
 // Initialize Auth and Firestore
 const auth = getAuth(app);
