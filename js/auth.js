@@ -1,4 +1,3 @@
-// ================= IMPORTS =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth,
@@ -14,7 +13,6 @@ import {
   where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 
 console.log("auth.js loaded");
 
@@ -23,21 +21,13 @@ const firebaseConfig = {
   apiKey: "AIzaSyC1c89hLKibBXtXVwsj-Rdm_1XoLPKjn_U",
   authDomain: "auth-a5431.firebaseapp.com",
   projectId: "auth-a5431",
-  appId: "1:383548464781:web:6f289215d0a4f4d9878cc4" // <- add your App ID
+  appId: "1:383548464781:web:6f289215d0a4f4d9878cc4"
 };
 
-// ✅ Initialize Firebase app
+// Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// ✅ Standard App Check with reCAPTCHA v3
-const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6LcN0pssAAAAAN3gn52IVS3dMmqZBNfo3Sxx67YA'),
-  isTokenAutoRefreshEnabled: true
-});
-
-console.log("App Check initialized");
-
-// ✅ Initialize Auth and Firestore
+// Initialize Auth and Firestore
 const auth = getAuth(app);
 const db = getFirestore(app);
 console.log("Firebase initialized");
