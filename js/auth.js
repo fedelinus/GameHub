@@ -5,7 +5,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 import {
   getFirestore,
   doc,
@@ -15,8 +14,6 @@ import {
   where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-// ===== APP CHECK IMPORT =====
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 
 console.log("auth.js loaded");
@@ -28,20 +25,22 @@ const firebaseConfig = {
   projectId: "auth-a5431"
 };
 
+// ✅ Step 1: Initialize Firebase app
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
-console.log("Firebase initialized");
-
-// ================= APP CHECK =================
-// Use **normal reCAPTCHA v3** (free plan)
+// ✅ Step 2: Initialize App Check **after the app exists**
 const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6LcN0pssAAAAAN3gn52IVS3dMmqZBNfo3Sxx67YA'), // <-- your new key
+  provider: new ReCaptchaV3Provider('6LcN0pssAAAAAN3gn52IVS3dMmqZBNfo3Sxx67YA'), // your new V3 site key
   isTokenAutoRefreshEnabled: true
 });
 
 console.log("App Check initialized");
+
+// ✅ Step 3: Initialize Auth and Firestore
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+console.log("Firebase initialized");
 
 // ================= ELEMENTS =================
 const loginBtn = document.getElementById("login-btn");
@@ -51,12 +50,10 @@ const errorBox = document.getElementById("signup-error");
 const title = document.querySelector(".login-section h2");
 const loginForm = document.getElementById("login-form");
 
-// ================= LOGIN FORM SUBMIT =================
+// ================= LOGIN FORM =================
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  // Prevent login if Sign Up mode is active
-  if (signupBtn.style.display === "block") return;
+  if (signupBtn.style.display === "block") return; // ignore if in signup mode
 
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -72,33 +69,23 @@ loginForm.addEventListener("submit", async (event) => {
     window.location.href = "index.html";
   } catch (error) {
     console.error("Login error:", error.code);
-    if (error.code === "auth/user-not-found") {
-      alert("Account not found.");
-    } else if (error.code === "auth/wrong-password") {
-      alert("Incorrect password.");
-    } else {
-      alert(error.message);
-    }
+    if (error.code === "auth/user-not-found") alert("Account not found.");
+    else if (error.code === "auth/wrong-password") alert("Incorrect password.");
+    else alert(error.message);
   }
 });
 
-// ================= SHOW SIGNUP MODE =================
+// ================= SHOW SIGNUP =================
 showSignupBtn.addEventListener("click", () => {
   console.log("Switching to Sign Up mode");
-
-  // Reveal Sign Up fields
   document.getElementById("confirm-password").style.display = "block";
   document.getElementById("username").style.display = "block";
   signupBtn.style.display = "block";
-
-  // Hide Login buttons
   loginBtn.style.display = "none";
   showSignupBtn.style.display = "none";
-
-  // Update title
   title.innerText = "Create Account";
 
-  // Clear fields and previous errors
+  // Clear fields
   document.getElementById("email").value = "";
   document.getElementById("password").value = "";
   document.getElementById("confirm-password").value = "";
@@ -108,7 +95,7 @@ showSignupBtn.addEventListener("click", () => {
 
 // ================= CHECK USERNAME =================
 async function isUsernameTaken(username) {
-  if (!username) return false; // safeguard
+  if (!username) return false;
   const usersRef = collection(db, "users");
   const q = query(usersRef, where("username", "==", username));
   const querySnapshot = await getDocs(q);
@@ -119,7 +106,6 @@ async function isUsernameTaken(username) {
 signupBtn.addEventListener("click", async () => {
   console.log("Sign Up clicked");
 
-  // Clear previous error
   errorBox.innerText = "";
   errorBox.style.display = "none";
 
@@ -128,14 +114,13 @@ signupBtn.addEventListener("click", async () => {
   const confirmPassword = document.getElementById("confirm-password").value;
   const username = document.getElementById("username").value.trim();
 
-  // ================= VALIDATION =================
+  // Validation
   if (!email || !password || !confirmPassword || !username) {
     errorBox.innerText = "Please fill all fields.";
     errorBox.style.display = "block";
     return;
   }
 
-  // Email basic format check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     errorBox.innerText = "Please enter a valid email address.";
@@ -143,7 +128,6 @@ signupBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Username length limit
   if (username.length > 16) {
     errorBox.innerText = "Username must be 16 characters or less.";
     errorBox.style.display = "block";
@@ -157,22 +141,18 @@ signupBtn.addEventListener("click", async () => {
   }
 
   try {
-    // Check username uniqueness
     if (await isUsernameTaken(username)) {
       errorBox.innerText = "Username already taken.";
       errorBox.style.display = "block";
       return;
     }
 
-    // Hide error box before creating account
-    errorBox.style.display = "none";
-
-    // ================= CREATE USER =================
+    // Create Auth user
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     console.log("User created in Auth:", user.uid);
 
-    // Store user in Firestore
+    // Save to Firestore
     await setDoc(doc(db, "users", user.uid), {
       email: email,
       username: username,
@@ -180,21 +160,14 @@ signupBtn.addEventListener("click", async () => {
     });
 
     console.log("User stored in Firestore");
-
     alert(`Account created successfully! Welcome, ${username}.`);
     window.location.href = "index.html";
 
   } catch (error) {
     console.error("Signup error:", error.code);
-
-    if (error.code === "auth/email-already-in-use") {
-      errorBox.innerText = "Email already registered.";
-    } else if (error.code === "auth/weak-password") {
-      errorBox.innerText = "Password must be at least 6 characters.";
-    } else {
-      errorBox.innerText = error.message;
-    }
-
+    if (error.code === "auth/email-already-in-use") errorBox.innerText = "Email already registered.";
+    else if (error.code === "auth/weak-password") errorBox.innerText = "Password must be at least 6 characters.";
+    else errorBox.innerText = error.message;
     errorBox.style.display = "block";
   }
 });
